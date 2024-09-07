@@ -7,7 +7,7 @@ ACCESS_TOKEN=$ACCESS_TOKEN
 
 cd /home/runner/actions-runner/
 
-./config.sh --url https://github.com/${ORGANIZATION}/ten-x-sales-python-api --token ${ACCESS_TOKEN}
+./config.sh --url https://github.com/${ORGANIZATION} --token ${ACCESS_TOKEN}
 
 cleanup() {
     echo "Removing runner..."
