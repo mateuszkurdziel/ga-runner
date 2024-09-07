@@ -1,6 +1,6 @@
 version: '3'
 services:
-  runner-10x-python-api:
+  runner:
     build: .
     environment:
       - ORGANIZATION=*****
