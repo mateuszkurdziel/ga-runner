@@ -1,20 +1,31 @@
 #!/bin/bash
 
-ORGANIZATION=$ORGANIZATION
-ACCESS_TOKEN=$ACCESS_TOKEN
+set -euo pipefail
 
-# REG_TOKEN=$(curl -sX POST -H "Authorization: token ${ACCESS_TOKEN}" https://api.github.com/orgs/${ORGANIZATION}/actions/runners/registration-token | jq .token --raw-output)
+: "${ORGANIZATION:?Environment variable ORGANIZATION not set}"
+: "${ACCESS_TOKEN:?Environment variable ACCESS_TOKEN not set}"
+: "${RUNNER_NAME:?Environment variable RUNNER_NAME not set}"
 
-cd /home/runner/actions-runner/
+RUNNER_DIR="/home/runner/actions-runner"
 
-./config.sh --url https://github.com/${ORGANIZATION} --token ${ACCESS_TOKEN}
+cd "${RUNNER_DIR}"
+
+echo "Removing existing runner (if registered)..."
+./config.sh remove --unattended --token "${ACCESS_TOKEN}" || echo "No runner removed or already clean."
+
+echo "Configuring fresh runner..."
+./config.sh --url "https://github.com/${ORGANIZATION}" \
+            --token "${ACCESS_TOKEN}" \
+            --name "${RUNNER_NAME}" \
+            --unattended \
+            --replace
 
 cleanup() {
-    echo "Removing runner..."
-    ./config.sh remove --unattended --token ${ACCESS_TOKEN}
+    echo "Shutting down runner and cleaning up..."
+    ./config.sh remove --unattended --token "${ACCESS_TOKEN}" || echo "Runner may have already been removed."
 }
-
 trap 'cleanup; exit 130' INT
 trap 'cleanup; exit 143' TERM
 
+echo "Starting runner..."
 ./run.sh & wait $!
